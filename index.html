@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>cliente_hash_map.c — Código Fonte</title>
+
+  <!-- Favicon HMC -->
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231e3a8a'/%3E%3Ctext x='50' y='70' font-family='Segoe Script,cursive' font-size='40' font-weight='bold' text-anchor='middle' fill='white'%3EHMC%3C/text%3E%3C/svg%3E">
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a1a3e 0%, #0f3460 50%, #16213e 100%);
+      color: #e6eef9;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container { max-width: 1400px; margin: 0 auto; animation: fadeInDown 1s ease-out; }
+    @keyframes fadeInDown { from { opacity:0; transform:translateY(-50px) } to { opacity:1; transform:translateY(0) } }
+
+    header { text-align:center; margin-bottom: 40px; animation: slideIn 1.2s ease-out; }
+    @keyframes slideIn { from { opacity:0; transform:translateX(-100px) } to { opacity:1; transform:translateX(0) } }
+
+    h1 { color:#fff; font-size:42px; margin-bottom:10px; text-shadow:0 0 20px rgba(100,200,255,0.25); }
+    .subtitle { color:#a8daff; font-size:18px; margin-bottom:20px; }
+
+    .info-badge { display:inline-block; background: rgba(255,255,255,0.06); padding:10px 20px; border-radius:25px; color:#fff; margin:5px; backdrop-filter: blur(6px); border:1px solid rgba(255,255,255,0.06); font-size:14px; }
+
+    .code-container {
+      background: #000;
+      border-radius: 15px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      overflow: hidden;
+      animation: scaleIn 1.2s ease-out;
+      border: 2px solid #1e3a8a;
+      margin-bottom: 30px;
+    }
+    @keyframes scaleIn { from { opacity:0; transform:scale(.98) } to { opacity:1; transform:scale(1) } }
+
+    .code-header {
+      background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%);
+      padding: 18px 24px;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .code-title { color:#fff; font-size:18px; font-weight:600; letter-spacing:0.3px; }
+
+    .code-buttons { display:flex; gap:10px; }
+    .code-btn { width:14px; height:14px; border-radius:50%; cursor:pointer; transition: transform .18s; }
+    .code-btn:hover { transform:scale(1.15) }
+    .btn-close { background:#ff5f56; } .btn-minimize { background:#ffbd2e; } .btn-maximize { background:#27c93f; }
+
+    .code-wrapper { display:flex; max-height:640px; overflow:hidden; }
+    .line-numbers {
+      color:#6b7280; text-align:right; padding:30px 16px; user-select:none;
+      border-right:2px solid #1e3a8a; background:#070708; font-family: 'Courier New', monospace;
+      font-size:13px; line-height:1.6; overflow:auto; min-width:64px;
+    }
+    .line-numbers span { display:block; padding:0 6px; }
+
+    .code-content { flex:1; overflow:auto; padding:30px; color:#fff; font-family:'Courier New', monospace; font-size:13px; line-height:1.6; background: linear-gradient(180deg, rgba(0,0,0,0.02), transparent); }
+    pre { margin:0; white-space:pre-wrap; word-wrap:break-word; }
+
+    .code-content::-webkit-scrollbar, .line-numbers::-webkit-scrollbar { width:12px; height:12px; }
+    .code-content::-webkit-scrollbar-track, .line-numbers::-webkit-scrollbar-track { background:#0f1724; }
+    .code-content::-webkit-scrollbar-thumb, .line-numbers::-webkit-scrollbar-thumb { background:#3b82f6; border-radius:6px; }
+    .code-content::-webkit-scrollbar-thumb:hover, .line-numbers::-webkit-scrollbar-thumb:hover { background:#60a5fa; }
+
+    .keyword { color:#c792ea; font-weight:700; }
+    .type { color:#82aaff; font-weight:700; }
+    .function { color:#82aaff; }
+    .string { color:#c3e88d; }
+    .comment { color:#6b7280; font-style:italic; }
+    .number { color:#f78c6c; }
+    .preprocessor { color:#89ddff; }
+    .define { color:#ffcb6b; }
+
+    .controls { text-align:center; margin:18px 0 30px; }
+    .btn {
+      background: linear-gradient(135deg,#3b82f6 0%, #1e3a8a 100%);
+      color:white; border:none; padding:12px 22px; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;
+      margin:0 8px; transition: all .25s; box-shadow: 0 6px 18px rgba(59,130,246,0.28);
+    }
+    .btn:hover { transform:translateY(-3px); box-shadow: 0 12px 30px rgba(59,130,246,0.36); }
+
+    .stats { display:flex; justify-content:center; gap:18px; flex-wrap:wrap; margin-top:8px; }
+    .stat-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(6px); border:1px solid rgba(255,255,255,0.04); padding:14px 20px; border-radius:10px; text-align:center; min-width:120px; }
+    .stat-value { font-size:20px; font-weight:700; color:#60a5fa; margin-bottom:6px; }
+    .stat-label { color:#a8daff; font-size:13px; }
+
+    .voltar-btn {
+      display:inline-block; margin-top:18px; margin-left:10px; background: linear-gradient(135deg,#667eea 0%, #764ba2 100%);
+      padding:10px 18px; border-radius:10px; color:white; text-decoration:none; font-weight:700;
+    }
+    .creditos { text-align:center; color:#8b949e; margin-top:36px; font-size:0.92rem; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>Sistema de Gerenciamento de Clientes</h1>
+      <p class="subtitle">Mapa Hash em C — Armazenamento Associativo com Encadeamento</p>
+
+      <div>
+        <span class="info-badge">Linguagem: C</span>
+        <span class="info-badge">Estrutura: Hash Table</span>
+        <span class="info-badge">Colisões: Encadeamento</span>
+        <span class="info-badge" id="totalLinhasBadge">506 linhas</span>
+      </div>
+    </header>
+
+    <div class="code-container">
+      <div class="code-header">
+        <div class="code-title">cliente_hash_map.c</div>
+        <div class="code-buttons">
+          <div class="code-btn btn-close"></div>
+          <div class="code-btn btn-minimize"></div>
+          <div class="code-btn btn-maximize"></div>
+        </div>
+      </div>
+
+      <div class="code-wrapper">
+        <div class="line-numbers" id="lineNumbers"></div>
+        <div class="code-content">
+          <pre id="codeDisplay"></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" onclick="copiarCodigo()">Copiar Código</button>
+      <button class="btn" onclick="baixarArquivo()">Baixar .c</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-value" id="totalLinhas">506</div>
+        <div class="stat-label">Linhas</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-value" id="totalFuncoes">0</div>
+        <div class="stat-label">Funções</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-value" id="totalEstruturas">0</div>
+        <div class="stat-label">Structs</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-value">100%</div>
+        <div class="stat-label">Funcional</div>
+      </div>
+    </div>
+
+    
+    <div class="creditos">
+      Desenvolvido por <strong>Gabriel Almeida</strong> — 2025
+    </div>
+  </div>
+
+  <script>
+    // ESCAPE NECESSÁRIO
+    function escapeCode(t){
+      return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+
+    // COLOQUE SEU C AQUI
+    const codigoC = `#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define TAMANHO_MAPA 10
+#define MAX_CLIENTES 100
+
+// ========== ESTRUTURAS DE DADOS ==========
+
+// Estrutura para armazenar dados do cliente
+typedef struct Cliente {
+    char nome[50];
+    char telefone[20];
+    char email[50];
+    struct Cliente *proximo; // Para tratamento de colisoes
+} Cliente;
+
+// Estrutura do Mapa (Armazenamento Associativo)
+typedef struct Mapa {
+    Cliente *tabela[TAMANHO_MAPA];
+    int totalClientes;
+    int totalColisoes;
+} Mapa;
+
+// ========== FUNCAO DE HASH ==========
+
+// Funcao de hash DJB2 - eficiente para strings
+unsigned int funcaoHash(char *chave) {
+    unsigned long hash = 5381;
+    int c;
+    
+    while ((c = *chave++)) {
+        hash = ((hash << 5) + hash) + c; // hash * 33 + c
+    }
+    
+    return hash % TAMANHO_MAPA;
+}
+
+// ========== FUNCOES DO MAPA ==========
+
+// Cria e inicializa o mapa
+Mapa* criarMapa() {
+    Mapa *mapa = (Mapa*)malloc(sizeof(Mapa));
+    
+    if (mapa == NULL) {
+        printf("Erro ao alocar memoria para o mapa!\n");
+        exit(1);
+    }
+    
+    for (int i = 0; i < TAMANHO_MAPA; i++) {
+        mapa->tabela[i] = NULL;
+    }
+    
+    mapa->totalClientes = 0;
+    mapa->totalColisoes = 0;
+    
+    return mapa;
+}
+
+// Cria um novo cliente
+Cliente* criarCliente(char *nome, char *telefone, char *email) {
+    Cliente *novoCliente = (Cliente*)malloc(sizeof(Cliente));
+    
+    if (novoCliente == NULL) {
+        printf("Erro ao alocar memoria para cliente!\n");
+        return NULL;
+    }
+    
+    strcpy(novoCliente->nome, nome);
+    strcpy(novoCliente->telefone, telefone);
+    strcpy(novoCliente->email, email);
+    novoCliente->proximo = NULL;
+    
+    return novoCliente;
+}
+
+// Insere um cliente no mapa
+int inserirCliente(Mapa *mapa, char *nome, char *telefone, char *email) {
+    if (mapa->totalClientes >= MAX_CLIENTES) {
+        printf("\n[ERRO] Limite maximo de %d clientes atingido!\n", MAX_CLIENTES);
+        return 0;
+    }
+    
+    unsigned int indice = funcaoHash(nome);
+    
+    printf("\n-> Hash gerado para '%s': %u\n", nome, indice);
+    
+    // Verifica se cliente ja existe
+    Cliente *atual = mapa->tabela[indice];
+    while (atual != NULL) {
+        if (strcmp(atual->nome, nome) == 0) {
+            printf("[ERRO] Cliente '%s' ja cadastrado!\n", nome);
+            return 0;
+        }
+        atual = atual->proximo;
+    }
+    
+    // Cria novo cliente
+    Cliente *novoCliente = criarCliente(nome, telefone, email);
+    if (novoCliente == NULL) return 0;
+    
+    // Insere no mapa (tratamento de colisao por encadeamento)
+    if (mapa->tabela[indice] == NULL) {
+        mapa->tabela[indice] = novoCliente;
+        printf("[OK] Cliente inserido na posicao %u (sem colisao)\n", indice);
+    } else {
+        // Colisao detectada
+        mapa->totalColisoes++;
+        printf("[!] COLISAO detectada na posicao %u!\n", indice);
+        
+        // Adiciona ao final da lista
+        atual = mapa->tabela[indice];
+        while (atual->proximo != NULL) {
+            atual = atual->proximo;
+        }
+        atual->proximo = novoCliente;
+        printf("[OK] Cliente inserido via encadeamento\n");
+    }
+    
+    mapa->totalClientes++;
+    printf("[SUCESSO] Cliente '%s' cadastrado!\n", nome);
+    printf("   Telefone: %s\n", telefone);
+    printf("   Email: %s\n", email);
+    
+    return 1;
+}
+
+// Busca um cliente pelo nome (chave)
+Cliente* buscarCliente(Mapa *mapa, char *nome) {
+    unsigned int indice = funcaoHash(nome);
+    
+    printf("\n-> Buscando '%s' no indice %u...\n", nome, indice);
+    
+    Cliente *atual = mapa->tabela[indice];
+    int posicao = 1;
+    
+    while (atual != NULL) {
+        if (strcmp(atual->nome, nome) == 0) {
+            printf("[ENCONTRADO] Cliente localizado", indice);
+            if (posicao > 1) {
+                printf(" (posicao %d na lista encadeada)", posicao);
+            }
+            printf("\n");
+            return atual;
+        }
+        atual = atual->proximo;
+        posicao++;
+    }
+    
+    printf("[NAO ENCONTRADO] Cliente '%s' nao existe no sistema.\n", nome);
+    return NULL;
+}
+
+// Remove um cliente do mapa
+int removerCliente(Mapa *mapa, char *nome) {
+    unsigned int indice = funcaoHash(nome);
+    
+    printf("\n-> Removendo cliente '%s'...\n", nome);
+    
+    Cliente *atual = mapa->tabela[indice];
+    Cliente *anterior = NULL;
+    
+    while (atual != NULL) {
+        if (strcmp(atual->nome, nome) == 0) {
+            if (anterior == NULL) {
+                mapa->tabela[indice] = atual->proximo;
+            } else {
+                anterior->proximo = atual->proximo;
+            }
+            
+            printf("[SUCESSO] Cliente '%s' removido!\n", atual->nome);
+            free(atual);
+            mapa->totalClientes--;
+            return 1;
+        }
+        anterior = atual;
+        atual = atual->proximo;
+    }
+    
+    printf("[ERRO] Cliente '%s' nao encontrado!\n", nome);
+    return 0;
+}
+
+// Atualiza telefone de um cliente
+int atualizarTelefone(Mapa *mapa, char *nome, char *novoTelefone) {
+    Cliente *cliente = buscarCliente(mapa, nome);
+    
+    if (cliente != NULL) {
+        printf("   Telefone antigo: %s\n", cliente->telefone);
+        strcpy(cliente->telefone, novoTelefone);
+        printf("[SUCESSO] Telefone atualizado para: %s\n", novoTelefone);
+        return 1;
+    }
+    
+    return 0;
+}
+
+// Exibe todos os clientes do mapa
+void exibirTodosClientes(Mapa *mapa) {
+    printf("\n");
+    printf("╔══════════════════════════════════════════════════════════════╗\n");
+    printf("║           LISTA COMPLETA DE CLIENTES CADASTRADOS            ║\n");
+    printf("╚══════════════════════════════════════════════════════════════╝\n");
+    printf("Total de clientes: %d | Colisoes tratadas: %d\n", 
+           mapa->totalClientes, mapa->totalColisoes);
+    printf("────────────────────────────────────────────────────────────────\n");
+    
+    if (mapa->totalClientes == 0) {
+        printf("   Nenhum cliente cadastrado.\n");
+        printf("────────────────────────────────────────────────────────────────\n\n");
+        return;
+    }
+    
+    int clienteNum = 1;
+    
+    for (int i = 0; i < TAMANHO_MAPA; i++) {
+        Cliente *atual = mapa->tabela[i];
+        int posNaLista = 1;
+        
+        while (atual != NULL) {
+            printf("\n[%d] %s", clienteNum, atual->nome);
+            if (posNaLista > 1) {
+                printf(" (colisao %d)", posNaLista);
+            }
+            printf("\n");
+            printf("    Telefone: %s\n", atual->telefone);
+            printf("    Email: %s\n", atual->email);
+            printf("    Indice Hash: %d\n", i);
+            
+            atual = atual->proximo;
+            clienteNum++;
+            posNaLista++;
+        }
+    }
+    
+    printf("\n────────────────────────────────────────────────────────────────\n\n");
+}
+
+// Exibe o mapa com estrutura visual
+void exibirEstruturaDoMapa(Mapa *mapa) {
+    printf("\n");
+    printf("╔══════════════════════════════════════════════════════════════╗\n");
+    printf("║             ESTRUTURA DO MAPA (TABELA HASH)                 ║\n");
+    printf("╚══════════════════════════════════════════════════════════════╝\n");
+    
+    for (int i = 0; i < TAMANHO_MAPA; i++) {
+        printf("[%2d] ", i);
+        
+        if (mapa->tabela[i] == NULL) {
+            printf("(vazio)\n");
+        } else {
+            Cliente *atual = mapa->tabela[i];
+            int cont = 0;
+            
+            while (atual != NULL) {
+                if (cont > 0) printf(" -> ");
+                printf("%s", atual->nome);
+                atual = atual->proximo;
+                cont++;
+            }
+            
+            if (cont > 1) {
+                printf(" [%d colisoes]", cont - 1);
+            }
+            printf("\n");
+        }
+    }
+    
+    printf("────────────────────────────────────────────────────────────────\n\n");
+}
+
+// Exibe estatisticas do mapa
+void exibirEstatisticas(Mapa *mapa) {
+    int posicoesOcupadas = 0;
+    int maiorCadeia = 0;
+    
+    for (int i = 0; i < TAMANHO_MAPA; i++) {
+        if (mapa->tabela[i] != NULL) {
+            posicoesOcupadas++;
+            
+            int tamanho = 0;
+            Cliente *atual = mapa->tabela[i];
+            while (atual != NULL) {
+                tamanho++;
+                atual = atual->proximo;
+            }
+            
+            if (tamanho > maiorCadeia) {
+                maiorCadeia = tamanho;
+            }
+        }
+    }
+    
+    float fatorCarga = (float)mapa->totalClientes / TAMANHO_MAPA;
+    float taxaOcupacao = (float)posicoesOcupadas / TAMANHO_MAPA * 100;
+    float eficiencia = mapa->totalClientes > 0 ? 
+        (float)(mapa->totalClientes - mapa->totalColisoes) / mapa->totalClientes * 100 : 100;
+    
+    printf("\n");
+    printf("╔══════════════════════════════════════════════════════════════╗\n");
+    printf("║                 ESTATISTICAS DO SISTEMA                     ║\n");
+    printf("╚══════════════════════════════════════════════════════════════╝\n");
+    printf("   Total de clientes:       %d\n", mapa->totalClientes);
+    printf("   Capacidade maxima:       %d\n", MAX_CLIENTES);
+    printf("   Tamanho do mapa:         %d posicoes\n", TAMANHO_MAPA);
+    printf("   Posicoes ocupadas:       %d (%.1f%%)\n", posicoesOcupadas, taxaOcupacao);
+    printf("   Fator de carga:          %.2f\n", fatorCarga);
+    printf("   Total de colisoes:       %d\n", mapa->totalColisoes);
+    printf("   Maior cadeia:            %d cliente(s)\n", maiorCadeia);
+    printf("   Eficiencia da hash:      %.1f%%\n", eficiencia);
+    printf("────────────────────────────────────────────────────────────────\n\n");
+}
+
+// Libera memoria do mapa
+void destruirMapa(Mapa *mapa) {
+    for (int i = 0; i < TAMANHO_MAPA; i++) {
+        Cliente *atual = mapa->tabela[i];
+        while (atual != NULL) {
+            Cliente *temp = atual;
+            atual = atual->proximo;
+            free(temp);
+        }
+    }
+    free(mapa);
+    printf("\n[OK] Mapa destruido e memoria liberada.\n");
+}
+
+// ========== TESTES AUTOMATICOS ==========
+
+void testeAutomatico(Mapa *mapa) {
+    printf("\n");
+    printf("###############################################################\n");
+    printf("#              INICIANDO TESTES AUTOMATICOS                  #\n");
+    printf("###############################################################\n");
+    
+    printf("\n=== TESTE 1: Insercao de 8 clientes ===\n");
+    inserirCliente(mapa, "Ana Silva", "(11) 99999-1111", "ana@email.com");
+    inserirCliente(mapa, "Bruno Costa", "(11) 99999-2222", "bruno@email.com");
+    inserirCliente(mapa, "Carla Souza", "(11) 99999-3333", "carla@email.com");
+    inserirCliente(mapa, "Daniel Lima", "(11) 99999-4444", "daniel@email.com");
+    inserirCliente(mapa, "Elena Rocha", "(11) 99999-5555", "elena@email.com");
+    inserirCliente(mapa, "Felipe Santos", "(11) 99999-6666", "felipe@email.com");
+    inserirCliente(mapa, "Gabriela Alves", "(11) 99999-7777", "gabriela@email.com");
+    inserirCliente(mapa, "Hugo Martins", "(11) 99999-8888", "hugo@email.com");
+    
+    printf("\n=== TESTE 2: Cliente duplicado ===\n");
+    inserirCliente(mapa, "Ana Silva", "(11) 88888-0000", "ana2@email.com");
+    
+    exibirEstruturaDoMapa(mapa);
+    
+    printf("\n=== TESTE 3: Busca de clientes ===\n");
+    Cliente *encontrado;
+    
+    encontrado = buscarCliente(mapa, "Carla Souza");
+    if (encontrado) {
+        printf("   Nome: %s\n", encontrado->nome);
+        printf("   Telefone: %s\n", encontrado->telefone);
+        printf("   Email: %s\n", encontrado->email);
+    }
+    
+    encontrado = buscarCliente(mapa, "Cliente Inexistente");
+    
+    printf("\n=== TESTE 4: Atualizacao de telefone ===\n");
+    atualizarTelefone(mapa, "Bruno Costa", "(11) 77777-7777");
+    
+    printf("\n=== TESTE 5: Remocao de cliente ===\n");
+    removerCliente(mapa, "Elena Rocha");
+    removerCliente(mapa, "Cliente Inexistente");
+    
+    exibirTodosClientes(mapa);
+    exibirEstatisticas(mapa);
+    
+    printf("###############################################################\n");
+    printf("#              TESTES AUTOMATICOS CONCLUIDOS                 #\n");
+    printf("###############################################################\n\n");
+}
+
+// ========== MENU INTERATIVO ==========
+
+void exibirMenu() {
+    printf("\n");
+    printf("╔══════════════════════════════════════════════════════════════╗\n");
+    printf("║        SISTEMA DE CADASTRO DE CLIENTES - LOJA              ║\n");
+    printf("║          (Armazenamento Associativo - Mapa Hash)           ║\n");
+    printf("╚══════════════════════════════════════════════════════════════╝\n");
+    printf("   1. Cadastrar novo cliente\n");
+    printf("   2. Buscar cliente por nome\n");
+    printf("   3. Atualizar telefone\n");
+    printf("   4. Remover cliente\n");
+    printf("   5. Exibir todos os clientes\n");
+    printf("   6. Exibir estrutura do mapa\n");
+    printf("   7. Exibir estatisticas\n");
+    printf("   8. Executar testes automaticos\n");
+    printf("   0. Sair\n");
+    printf("────────────────────────────────────────────────────────────────\n");
+    printf("   Escolha uma opcao: ");
+}
+
+// ========== FUNCAO PRINCIPAL ==========
+
+int main() {
+    Mapa *mapa = criarMapa();
+    int opcao;
+    char nome[50], telefone[20], email[50];
+    
+    printf("\n");
+    printf("╔══════════════════════════════════════════════════════════════╗\n");
+    printf("║       BEM-VINDO AO SISTEMA DE CADASTRO DE CLIENTES         ║\n");
+    printf("║            Armazenamento Associativo em C                  ║\n");
+    printf("║          Capacidade: ate %d clientes                       ║\n", MAX_CLIENTES);
+    printf("╚══════════════════════════════════════════════════════════════╝\n");
+    
+    do {
+        exibirMenu();
+        scanf("%d", &opcao);
+        getchar();
+        
+        switch (opcao) {
+            case 1: // Cadastrar
+                printf("\n--- CADASTRO DE NOVO CLIENTE ---\n");
+                printf("Nome: ");
+                fgets(nome, 50, stdin);
+                nome[strcspn(nome, "\n")] = 0;
+                
+                printf("Telefone: ");
+                fgets(telefone, 20, stdin);
+                telefone[strcspn(telefone, "\n")] = 0;
+                
+                printf("Email: ");
+                fgets(email, 50, stdin);
+                email[strcspn(email, "\n")] = 0;
+                
+                inserirCliente(mapa, nome, telefone, email);
+                break;
+                
+            case 2: // Buscar
+                printf("\n--- BUSCA DE CLIENTE ---\n");
+                printf("Nome do cliente: ");
+                fgets(nome, 50, stdin);
+                nome[strcspn(nome, "\n")] = 0;
+                
+                Cliente *encontrado = buscarCliente(mapa, nome);
+                if (encontrado) {
+                    printf("\n   === DADOS DO CLIENTE ===\n");
+                    printf("   Nome: %s\n", encontrado->nome);
+                    printf("   Telefone: %s\n", encontrado->telefone);
+                    printf("   Email: %s\n", encontrado->email);
+                }
+                break;
+                
+            case 3: // Atualizar
+                printf("\n--- ATUALIZAR TELEFONE ---\n");
+                printf("Nome do cliente: ");
+                fgets(nome, 50, stdin);
+                nome[strcspn(nome, "\n")] = 0;
+                
+                printf("Novo telefone: ");
+                fgets(telefone, 20, stdin);
+                telefone[strcspn(telefone, "\n")] = 0;
+                
+                atualizarTelefone(mapa, nome, telefone);
+                break;
+                
+            case 4: // Remover
+                printf("\n--- REMOVER CLIENTE ---\n");
+                printf("Nome do cliente: ");
+                fgets(nome, 50, stdin);
+                nome[strcspn(nome, "\n")] = 0;
+                
+                removerCliente(mapa, nome);
+                break;
+                
+            case 5: // Listar todos
+                exibirTodosClientes(mapa);
+                break;
+                
+            case 6: // Estrutura
+                exibirEstruturaDoMapa(mapa);
+                break;
+                
+            case 7: // Estatisticas
+                exibirEstatisticas(mapa);
+                break;
+                
+            case 8: // Teste automatico
+                testeAutomatico(mapa);
+                break;
+                
+            case 0: // Sair
+                destruirMapa(mapa);
+                printf("Encerrando sistema. Ate logo!\n\n");
+                break;
+                
+            default:
+                printf("\n[ERRO] Opcao invalida! Tente novamente.\n");
+        }
+        
+        if (opcao != 0) {
+            printf("\nPressione ENTER para continuar...");
+            getchar();
+        }
+        
+    } while (opcao != 0);
+    
+    return 0;
+}`
+
+    const codigoEscapado = escapeCode(codigoC);
+
+    function aplicarSyntaxHighlight(c){
+      c = c.replace(/\b(if|else|while|for|return|switch|case|break|struct|typedef|void|int|unsigned|long|float|char|double)\b/g,'<span class="keyword">$1</span>');
+      c = c.replace(/\b(Mapa|Cliente)\b/g,'<span class="type">$1</span>');
+      c = c.replace(/([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\()/g,'<span class="function">$1</span>');
+      c = c.replace(/"([^"\\]*(\\.[^"\\]*)*)"/g,'<span class="string">"$1"</span>');
+      c = c.replace(/\/\/(.*?)$/gm,'<span class="comment">//$1</span>');
+      c = c.replace(/\b(\d+)\b/g,'<span class="number">$1</span>');
+      c = c.replace(/^#(include|define).*$/gm,'<span class="preprocessor">$&</span>');
+      return c;
+    }
+
+    function renderizarCodigo(){
+      // LINHAS FIXAS = 506  
+      const NUM_LINHAS = 506;
+
+      document.getElementById("lineNumbers").innerHTML =
+        Array.from({length: NUM_LINHAS}, (_, i) => `<span>${i+1}</span>`).join("");
+
+      document.getElementById("totalLinhas").textContent = NUM_LINHAS;
+      document.getElementById("totalLinhasBadge").textContent = NUM_LINHAS + " linhas";
+
+      // CONTADOR DE FUNÇÕES (ROBUSTO)
+      const funcoes = codigoC.match(/(?:void|int|unsigned|Mapa|Cliente)[^;=]*?\(/g) || [];
+      document.getElementById("totalFuncoes").textContent = funcoes.length;
+
+      const structs = codigoC.match(/typedef\s+struct/g) || [];
+      document.getElementById("totalEstruturas").textContent = structs.length;
+
+      document.getElementById("codeDisplay").innerHTML = aplicarSyntaxHighlight(codigoEscapado);
+    }
+
+    function copiarCodigo(){
+      navigator.clipboard.writeText(codigoC);
+      alert("Código copiado!");
+    }
+
+    function baixarArquivo(){
+      const blob = new Blob([codigoC],{type:"text/plain"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "cliente_hash_map.c";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    renderizarCodigo();
+  </script>
+</body>
+</html>
+
+
