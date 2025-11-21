@@ -6,7 +6,7 @@ O objetivo é demonstrar uma estrutura associativa eficiente, organizada e escal
 
 Além do código-fonte, o repositório também inclui uma **página visual moderna** em HTML/CSS/JS para exibição sintática do arquivo `.c`, com animações, contador de linhas, botões de copiar/baixar e destaque de sintaxe.
 
-Acesso à página: 
+Acesso à página: ([https://gabrielalme14-arch.github.io/hash-map-codigo/])
 ---
 
 ## 🚀 Funcionalidades do Sistema
